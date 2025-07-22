@@ -1,0 +1,28 @@
+version: '3.9'
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: catalog-mongo
+    environment:
+      MONGO_INITDB_DATABASE: catalog_db
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpass
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - "27017:27017"
+
+  api:
+    build: .
+    container_name: catalog-api
+    environment:
+      # conecta como root no DB catalog_db
+      MONGO_URI: mongodb://root:rootpass@mongo:27017/catalog_db?authSource=admin
+    depends_on:
+      - mongo
+    ports:
+      - "8000:8000"
+
+volumes:
+  mongo_data:
