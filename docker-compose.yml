@@ -17,7 +17,7 @@ services:
     build: .
     container_name: catalog-api
     environment:
-      MONGO_URI: mongodb://${MONGO_USER}:${MONGO_PASS}@mongo:${MONGO_PORT}/${MONGO_DB}?authSource=admin
+      MONGO_URI: ${MONGO_URI}
     depends_on:
       - mongo
     ports:
