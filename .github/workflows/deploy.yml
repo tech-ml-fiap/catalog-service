@@ -44,7 +44,6 @@ jobs:
           terraform init
           terraform apply -auto-approve -input=false -debug || terraform import aws_ecr_repository.product_catalog_repository $ECR_REPO_NAME
 
-
       - name: Instalar Docker
         run: |
           curl -fsSL https://get.docker.com | sudo bash
