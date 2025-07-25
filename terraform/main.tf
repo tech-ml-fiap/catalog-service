@@ -2,14 +2,17 @@ provider "aws" {
   region = var.aws_region
 }
 
-# Buscar o repositório ECR existente
-data "aws_ecr_repository" "product_catalog_repository" {
-  name = var.repository_name
-}
+# Obter a identidade da conta AWS (para usar o ARN da role LabRole)
+data "aws_caller_identity" "current" {}
 
 # Criar o ECS Cluster
 resource "aws_ecs_cluster" "product_catalog_cluster" {
   name = var.cluster_name
+}
+
+# Usar o repositório ECR existente
+data "aws_ecr_repository" "product_catalog_repository" {
+  name = var.repository_name
 }
 
 # Usar a role existente 'LabRole' para a execução do ECS Fargate
