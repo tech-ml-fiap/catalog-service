@@ -18,6 +18,12 @@ resource "aws_ecs_cluster" "product_catalog_cluster" {
   name = var.cluster_name
 }
 
+# Usar a role existente 'LabRole' para a execução do ECS Fargate
+resource "aws_iam_role_policy_attachment" "ecs_execution_policy_attachment" {
+  role       = "LabRole"  # Usando a role LabRole já existente
+  policy_arn = "arn:aws:iam::aws:policy/AmazonECSTaskExecutionRolePolicy"  # Política padrão de execução do ECS
+}
+
 # Definir a Task Definition do ECS (usando a imagem do repositório ECR)
 resource "aws_ecs_task_definition" "product_catalog_task" {
   family                   = "product-catalog-task"
@@ -40,6 +46,7 @@ resource "aws_ecs_task_definition" "product_catalog_task" {
   network_mode             = "awsvpc"
   cpu                      = "256"
   memory                   = "512"
+  execution_role_arn       = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/LabRole"  # Usando a role 'LabRole'
 }
 
 # Criar o ECS Service (onde o container será executado)
