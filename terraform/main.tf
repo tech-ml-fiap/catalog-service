@@ -2,6 +2,9 @@ provider "aws" {
   region = var.aws_region
 }
 
+# Obter a identidade da conta AWS (para usar o ARN da role LabRole)
+data "aws_caller_identity" "current" {}
+
 # Criar o repositório ECR
 resource "aws_ecr_repository" "product_catalog_repository" {
   name = var.repository_name
