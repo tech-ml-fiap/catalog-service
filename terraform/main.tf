@@ -2,18 +2,9 @@ provider "aws" {
   region = var.aws_region
 }
 
-# Obter a identidade da conta AWS (para usar o ARN da role LabRole)
-data "aws_caller_identity" "current" {}
-
-# Criar o repositório ECR
-resource "aws_ecr_repository" "product_catalog_repository" {
+# Buscar o repositório ECR existente
+data "aws_ecr_repository" "product_catalog_repository" {
   name = var.repository_name
-
-  image_scanning_configuration {
-    scan_on_push = true
-  }
-
-  image_tag_mutability = "MUTABLE"
 }
 
 # Criar o ECS Cluster
@@ -22,17 +13,11 @@ resource "aws_ecs_cluster" "product_catalog_cluster" {
 }
 
 # Usar a role existente 'LabRole' para a execução do ECS Fargate
-resource "aws_iam_role_policy_attachment" "ecs_execution_policy_attachment" {
-  role       = "LabRole"  # Usando a role LabRole já existente
-  policy_arn = "arn:aws:iam::aws:policy/AmazonECSTaskExecutionRolePolicy"  # Política padrão de execução do ECS
-}
-
-# Definir a Task Definition do ECS (usando a imagem do repositório ECR)
 resource "aws_ecs_task_definition" "product_catalog_task" {
   family                   = "product-catalog-task"
   container_definitions    = jsonencode([{
     name      = "product-catalog-container"
-    image     = aws_ecr_repository.product_catalog_repository.repository_url
+    image     = data.aws_ecr_repository.product_catalog_repository.repository_url
     cpu       = 256
     memory    = 512
     essential = true
