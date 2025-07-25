@@ -18,15 +18,6 @@ resource "aws_ecs_cluster" "product_catalog_cluster" {
   name = var.cluster_name
 }
 
-# Usar o security group padrão da VPC
-data "aws_security_group" "default" {
-  name   = "default"
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.default.id]
-  }
-}
-
 # Definir a Task Definition do ECS (usando a imagem do repositório ECR)
 resource "aws_ecs_task_definition" "product_catalog_task" {
   family                   = "product-catalog-task"
@@ -60,8 +51,12 @@ resource "aws_ecs_service" "product_catalog_service" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    security_groups = [data.aws_security_group.default.id]
-    subnets          = data.aws_subnets.default.ids
-    assign_public_ip = true
+    security_groups = [data.aws_security_group.default.id]  # Referenciando o security group padrão
+    subnets          = data.aws_subnets.default.ids  # Usando as subnets da VPC padrão
+    assign_public_ip = true  # Para garantir que o serviço tenha IP público
   }
+}
+
+output "repository_url" {
+  value = aws_ecr_repository.product_catalog_repository.repository_url
 }
