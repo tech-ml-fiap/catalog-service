@@ -41,8 +41,8 @@ resource "aws_ecs_task_definition" "product_catalog_task" {
 }
 
 data "aws_ecs_service" "existing_service" {
-  cluster = aws_ecs_cluster.product_catalog_cluster.id
-  service = "product-catalog-service"
+  cluster_arn = aws_ecs_cluster.product_catalog_cluster.arn
+  service_name = "product-catalog-service"
 }
 
 resource "aws_ecs_service" "product_catalog_service" {
