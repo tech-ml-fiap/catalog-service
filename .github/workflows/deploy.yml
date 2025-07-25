@@ -10,6 +10,7 @@ env:
   CLUSTER_NAME: product-catalog-cluster
   ECR_REPO_NAME: product-catalog-repo
   IMAGE_TAG: latest
+  REPO_URL: "561210623347.dkr.ecr.us-east-1.amazonaws.com/product-catalog-repo"
 
 jobs:
   deploy:
@@ -60,8 +61,8 @@ jobs:
 
       - name: Atualizar ECS Service
         run: |
-          aws ecs update-service --cluster ${{ vars.CLUSTER_NAME }} --service product-catalog-service --force-new-deployment --region ${{ vars.AWS_REGION }}
+          aws ecs update-service --cluster $CLUSTER_NAME --service product-catalog-service --force-new-deployment --region $AWS_REGION
 
       - name: Monitorar aplicação
         run: |
-          aws ecs describe-services --cluster ${{ vars.CLUSTER_NAME }} --services product-catalog-service --region ${{ vars.AWS_REGION }}
+          aws ecs describe-services --cluster $CLUSTER_NAME --services product-catalog-service --region $AWS_REGION
