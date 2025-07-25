@@ -40,8 +40,13 @@ resource "aws_ecs_task_definition" "product_catalog_task" {
   execution_role_arn       = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/LabRole"  # Usando a role 'LabRole'
 }
 
-# Criar o ECS Service (onde o container será executado)
+data "aws_ecs_service" "existing_service" {
+  cluster = aws_ecs_cluster.product_catalog_cluster.id
+  service = "product-catalog-service"
+}
+
 resource "aws_ecs_service" "product_catalog_service" {
+  count           = length(data.aws_ecs_service.existing_service) == 0 ? 1 : 0
   name            = "product-catalog-service"
   cluster         = aws_ecs_cluster.product_catalog_cluster.id
   task_definition = aws_ecs_task_definition.product_catalog_task.arn
