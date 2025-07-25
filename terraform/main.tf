@@ -20,8 +20,7 @@ resource "aws_ecs_cluster" "product_catalog_cluster" {
 
 # Criar a Security Group para o ECS
 resource "aws_security_group" "ecs_security_group" {
-  name_prefix = "ecs_sg_"
-  description = "Allow inbound traffic to ECS containers"
+  id = data.aws_security_group.default.id  # Usa o security group padrão da VPC
 
   ingress {
     from_port   = 80
@@ -71,7 +70,8 @@ resource "aws_ecs_service" "product_catalog_service" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    security_groups = [aws_security_group.ecs_security_group.id]
+    security_groups = [data.aws_security_group.default.id]
+    subnets          = data.aws_subnets.default.ids
     assign_public_ip = true
   }
 }
