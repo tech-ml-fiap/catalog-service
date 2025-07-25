@@ -18,22 +18,12 @@ resource "aws_ecs_cluster" "product_catalog_cluster" {
   name = var.cluster_name
 }
 
-# Criar a Security Group para o ECS
-resource "aws_security_group" "ecs_security_group" {
-  id = data.aws_security_group.default.id  # Usa o security group padrão da VPC
-
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+# Usar o security group padrão da VPC
+data "aws_security_group" "default" {
+  name   = "default"
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
   }
 }
 
