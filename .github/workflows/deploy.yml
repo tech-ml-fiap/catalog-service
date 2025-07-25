@@ -3,17 +3,17 @@ name: Deploy AWS - Product Catalog Service
 on:
   push:
     branches:
-      - main
+      - master  # ou main, dependendo do seu fluxo
 
 env:
   AWS_REGION: us-east-1
-  ECS_CLUSTER_NAME: product-catalog-cluster
+  CLUSTER_NAME: product-catalog-cluster
   ECR_REPO_NAME: product-catalog-repo
   IMAGE_TAG: latest
 
 jobs:
   deploy:
-    name: Deploy para AWS
+    name: Deploy App para AWS
     runs-on: ubuntu-latest
 
     steps:
@@ -33,16 +33,11 @@ jobs:
         with:
           terraform_version: 1.5.7
 
-      - name: Executar Terraform Plan
-        run: |
-          cd terraform
-          terraform plan
-
       - name: Criar repositório ECR com Terraform
         run: |
           cd terraform
           terraform init
-          terraform apply -auto-approve -input=false -debug || terraform import aws_ecr_repository.product_catalog_repository $ECR_REPO_NAME
+          terraform apply -auto-approve || terraform import aws_ecr_repository.product_catalog_repository $ECR_REPO_NAME
 
       - name: Instalar Docker
         run: |
@@ -56,7 +51,7 @@ jobs:
         id: ecr
         run: |
           URL=$(aws ecr describe-repositories --repository-names $ECR_REPO_NAME --region $AWS_REGION --query 'repositories[0].repositoryUri' --output text)
-          echo "REPO_URL=$URL" >> $GITHUB_ENV
+          echo "REPO_URL=$URL" >> $GITHUB_ENV  # Salva a URL do ECR no GITHUB_ENV
 
       - name: Login no ECR
         run: |
@@ -68,11 +63,6 @@ jobs:
           docker build -t $ECR_REPO_NAME:$IMAGE_TAG .
           docker tag $ECR_REPO_NAME:$IMAGE_TAG $REPO_URL:$IMAGE_TAG
           docker push $REPO_URL:$IMAGE_TAG
-
-      - name: Criar ECS Fargate Task com Terraform
-        run: |
-          cd terraform
-          terraform apply -auto-approve -var="ecr_url=${{ env.REPO_URL }}:${{ env.IMAGE_TAG }}" -var="cluster_name=$ECS_CLUSTER_NAME"
 
       - name: Atualizar ECS Service
         run: |
