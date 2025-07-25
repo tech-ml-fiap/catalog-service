@@ -51,12 +51,8 @@ resource "aws_ecs_service" "product_catalog_service" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    security_groups = [data.aws_security_group.default.id]  # Referenciando o security group padrão
-    subnets          = data.aws_subnets.default.ids  # Usando as subnets da VPC padrão
-    assign_public_ip = true  # Para garantir que o serviço tenha IP público
+    security_groups = [data.aws_security_group.default.id]
+    subnets          = data.aws_subnets.default.ids
+    assign_public_ip = true
   }
-}
-
-output "repository_url" {
-  value = aws_ecr_repository.product_catalog_repository.repository_url
 }
