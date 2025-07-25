@@ -3,7 +3,7 @@ name: Deploy AWS - Product Catalog Service
 on:
   push:
     branches:
-      - master  # ou main, dependendo do seu fluxo
+      - main
 
 env:
   AWS_REGION: us-east-1
