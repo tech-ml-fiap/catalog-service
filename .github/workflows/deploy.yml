@@ -37,7 +37,8 @@ jobs:
         run: |
           cd terraform
           terraform init
-          terraform apply -auto-approve
+          terraform plan -out=tfplan
+          terraform apply -auto-approve tfplan
 
       - name: Instalar Docker
         run: |
