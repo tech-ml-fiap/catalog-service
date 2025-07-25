@@ -33,11 +33,16 @@ jobs:
         with:
           terraform_version: 1.5.7
 
+      - name: Executar Terraform Plan
+        run: |
+          cd terraform
+          terraform plan
+
       - name: Criar repositório ECR com Terraform
         run: |
-          cd terraform  # Mude para o diretório onde os arquivos do Terraform estão
+          cd terraform
           terraform init
-          terraform apply -auto-approve || terraform import aws_ecr_repository.product_catalog_repository $ECR_REPO_NAME
+          terraform apply -auto-approve -input=false -debug || terraform import aws_ecr_repository.product_catalog_repository $ECR_REPO_NAME
 
       - name: Instalar Docker
         run: |
@@ -67,7 +72,7 @@ jobs:
       - name: Criar ECS Fargate Task com Terraform
         run: |
           cd terraform
-          terraform apply -auto-approve -var="ecr_url=$REPO_URL:$IMAGE_TAG" -var="cluster_name=$ECS_CLUSTER_NAME"
+          terraform apply -auto-approve -var="ecr_url=${{ env.REPO_URL }}:${{ env.IMAGE_TAG }}" -var="cluster_name=$ECS_CLUSTER_NAME"
 
       - name: Atualizar ECS Service
         run: |
