@@ -53,4 +53,11 @@ resource "aws_ecs_service" "product_catalog_service" {
     subnets          = data.aws_subnets.default.ids
     assign_public_ip = true
   }
+
+  lifecycle {
+    ignore_changes = [
+      task_definition,
+      desired_count
+    ]
+  }
 }
