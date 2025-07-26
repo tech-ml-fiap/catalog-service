@@ -8,6 +8,7 @@ from app.adapters.driver.dependencies.di import get_repo
 from app.domain.entities.product import Product
 from app.domain.services.create_product import CreateProductService
 from app.domain.services.delete_product import DeleteProductService
+from app.domain.services.get_product import GetProductService
 from app.domain.services.list_product import ListProductsService
 from app.domain.services.reserve_stock import ReserveStockService
 from app.domain.services.update_product import UpdateProductService
@@ -79,6 +80,15 @@ async def delete_product(pid: str, repo=Depends(get_repo)):
     except ValueError as e:
         # produto não existe ou já está inativo
         raise HTTPException(status_code=404, detail=str(e))
+
+@router.get("/{pid}", response_model=ProductOut, status_code=status.HTTP_200_OK)
+async def get_product(pid: str, repo=Depends(get_repo)):
+    service = GetProductService(repo)
+    try:
+        prod = await service.execute(pid)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    return ProductOut(**asdict(prod))
 
 @router.post("/{pid}/reserve", status_code=status.HTTP_204_NO_CONTENT)
 async def reserve_stock(pid: str, body: ReserveBody, repo=Depends(get_repo)):
