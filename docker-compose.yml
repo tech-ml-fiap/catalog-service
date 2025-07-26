@@ -12,16 +12,24 @@ services:
       - mongo_data:/data/db
     ports:
       - "27017:27017"
+    networks: [fastfood]
 
   api:
     build: .
     container_name: catalog-api
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
     environment:
       MONGO_URI: ${MONGO_URI}
     depends_on:
       - mongo
     ports:
       - "8000:8000"
+    networks: [fastfood]
 
 volumes:
   mongo_data:
+
+networks:
+  fastfood:
+    external: true
+    name: fastfood-net
