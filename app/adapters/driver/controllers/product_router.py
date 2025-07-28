@@ -1,3 +1,4 @@
+from collections import defaultdict
 from dataclasses import asdict
 
 from fastapi import status
@@ -107,3 +108,69 @@ async def activate_product(pid: str, repo=Depends(get_repo)):
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     return ProductOut(**asdict(updated))
+
+
+class CategoryBreakdown(BaseModel):
+    count: int
+    stock: int
+    active: int
+    inactive: int
+    valuation: float  # soma de price * stock
+
+class ProductsSummaryOut(BaseModel):
+    total_products: int
+    active_products: int
+    inactive_products: int
+    total_stock: int
+    total_valuation: float
+    by_category: dict[Category, CategoryBreakdown]
+
+
+@router.get(
+    "/summary",
+    response_model=ProductsSummaryOut,
+    summary="Resumo de inventário",
+    description="Estatísticas gerais e por categoria (quantidade, estoque, ativos/inativos e valuation).",
+)
+async def summarize_products(repo=Depends(get_repo)):
+    prods = await ListProductsService(repo).execute(category=None, active=None)
+
+    total_products = len(prods)
+    active_products = sum(1 for p in prods if getattr(p, "active", True))
+    inactive_products = total_products - active_products
+    total_stock = sum(int(p.stock or 0) for p in prods)
+    total_valuation = float(sum((p.price or 0.0) * (p.stock or 0) for p in prods))
+
+    cat_map: dict[Category, dict[str, float | int]] = defaultdict(
+        lambda: {"count": 0, "stock": 0, "active": 0, "inactive": 0, "valuation": 0.0}
+    )
+
+    for p in prods:
+        c = p.category
+        cat_map[c]["count"] += 1
+        cat_map[c]["stock"] += int(p.stock or 0)
+        if getattr(p, "active", True):
+            cat_map[c]["active"] += 1
+        else:
+            cat_map[c]["inactive"] += 1
+        cat_map[c]["valuation"] += float((p.price or 0.0) * (p.stock or 0))
+
+    by_category: dict[Category, CategoryBreakdown] = {
+        c: CategoryBreakdown(
+            count=int(v["count"]),
+            stock=int(v["stock"]),
+            active=int(v["active"]),
+            inactive=int(v["inactive"]),
+            valuation=float(v["valuation"]),
+        )
+        for c, v in cat_map.items()
+    }
+
+    return ProductsSummaryOut(
+        total_products=total_products,
+        active_products=active_products,
+        inactive_products=inactive_products,
+        total_stock=total_stock,
+        total_valuation=total_valuation,
+        by_category=by_category,
+    )
