@@ -97,3 +97,13 @@ async def reserve_stock(pid: str, body: ReserveBody, repo=Depends(get_repo)):
         await service.execute(pid, body.qty)
     except OutOfStockException as e:
         raise HTTPException(status_code=409, detail=str(e))
+
+
+@router.post("/{pid}/activate", response_model=ProductOut, status_code=status.HTTP_200_OK)
+async def activate_product(pid: str, repo=Depends(get_repo)):
+    service = UpdateProductService(repo)
+    try:
+        updated = await service.execute(pid, {"active": True})
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    return ProductOut(**asdict(updated))
